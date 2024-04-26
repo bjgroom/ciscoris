@@ -18,36 +18,37 @@ from ciscoris import ris
 
 #### specify your CUCM details
 ```py
-cucm = os.getenv('cucm', '10.10.10.10')
-version = os.getenv('version', '11.5')
-risuser = os.getenv('risuser', 'risadmin')
-rispass = os.getenv('rispass', 'p@ssw0rd')
+cucm = '10.0.0.1' 	# Your CUCM node
+version = '11.5'  	# Your CUCM version
+risuser = 'admin'	# Your CUCM user account
+rispass = 'password'	# Your risuser password
 ```
 
 #### instanciate your RIS object
 ```py
 ris = ris(username=risuser,password=rispass,cucm=cucm,cucm_version=version)
 ```
-
+---
 #### input an array of phones
 
 ```py
-phones = ['SEPF8A5C59E0F1C', 'SEP1CDEA78380DE', 'SEP01CD4EF58980']
+voip = ['SEPF8A5C59E0F1C', 'SEP1CDEA78380DE', 'SEP01CD4EF58980']
 ```
 
-#### input an array of "process nodes" or nodes which run Callmanager service
+#### Optional: input an array of "process nodes" or nodes which run Callmanager service
+Omitting this argument queries all nodes in your cluster
 ```py
-subs = ['sub1', 'sub2', 'sub3']
+subs = ['10.0.0.1', '10.0.1.1', '10.2.0.1']
 ```
 
 #### you can use the related `ciscoaxl` library grab process nodes via API.
 ```py
-def getSubs():
-    nodes = axl.listProcessNodes()
-    if nodes['success']:
-        return nodes['response']
+subs = [x['name'] for x in ucm.list_process_nodes()]
+```
 
-subs = getSubs()
+### check phones registration status.
+```py
+result = ris.checkRegistration(voip [, subs=None] )
 ```
 
 #### group phones into 1000 and check registrations per group
@@ -57,18 +58,16 @@ limit = lambda phones, n=1000: [phones[i:i+n] for i in range(0, len(phones), n)]
 groups = limit(phones)
 for group in groups:
     registered = ris.checkRegistration(group, subs)
-    user = registered['LoginUserId']
-    regtime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(registered['TimeStamp']))
-    for item in registered['IPAddress']:
-        ip = item[1][0]['IP']
+    user = registered.CmNodes.item[0].CmDevices.item[x].LoginUserId
+    regtime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(registered.CmNodes.item[0].CmDevices.item[x].TimeStamp))
+    for item in registered.CmNodes.item[0].CmDevices.item:
+        ip = item.IPAddress
+	primeline = item.DirNumber
+    	name = item.Name
 
-    for item in registered['LinesStatus']:
-        primeline = item[1][0]['DirectoryNumber']
-    name = registered['Name']
-
-    print('name: '+name)
-    print('user: '+user)
-    print('primary dn: '+primeline)
-    print('ip address: '+ip)
-    print('registration time: '+regtime)
+	print('name: '+name)
+	print('user: '+user)
+	print('primary dn: '+primeline)
+	print('ip address: '+ip)
+	print('registration time: '+regtime)
 ```

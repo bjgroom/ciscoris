@@ -75,7 +75,7 @@ class ris(object):
         except Fault as e:
             return e
 
-    def checkRegistration(self, phones, subs):
+    def checkRegistration(self, phones, subs=None):
         CmSelectionCriteria = {
             "MaxReturnedDevices": "1000",
             "DeviceClass": "Phone",
@@ -91,8 +91,24 @@ class ris(object):
             "Protocol": "Any",
             "DownloadStatus": "Any"
         }
-        for sub in subs:
-            CmSelectionCriteria['NodeName'] = sub
-            CmSelectionCriteria['SelectItems']['item']['Item'] = ",".join(phones)
-            reg = self.get_devices(**CmSelectionCriteria)
-            return reg
+
+        CmSelectionCriteria['SelectItems']['item']['Item'] = ",".join(phones)
+        
+        if subs and type(subs) is list:
+            found = []
+            total = 0
+            for sub in subs:
+                CmSelectionCriteria['NodeName'] = sub
+                res = self.get_devices(**CmSelectionCriteria)
+                found.extend(res.CmNodes.item)
+                total += res.TotalDevicesFound
+            res.CmNodes.item = found        # Maintain type integrity
+            res.TotalDevicesFound = total   # Accurate count of found CmDevices
+        
+            return res
+
+        elif not subs:
+            return self.get_devices(**CmSelectionCriteria)
+        else:
+            raise TypeError("subs must be a list of CUCM nodes or bool(False) for all nodes.")
+
