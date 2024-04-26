@@ -28,7 +28,6 @@ rispass = 'password'	# Your risuser password
 ```py
 ris = ris(username=risuser,password=rispass,cucm=cucm,cucm_version=version)
 ```
----
 #### input an array of phones
 
 ```py
@@ -36,9 +35,9 @@ voip = ['SEPF8A5C59E0F1C', 'SEP1CDEA78380DE', 'SEP01CD4EF58980']
 ```
 
 #### Optional: input an array of "process nodes" or nodes which run Callmanager service
-Omitting this argument queries all nodes in your cluster
+- Omitting this argument queries all nodes in your cluster
 ```py
-subs = ['10.0.0.1', '10.0.1.1', '10.2.0.1']
+subs = ['10.0.0.1', '10.0.1.1', '10.0.2.1']
 ```
 
 #### you can use the related `ciscoaxl` library grab process nodes via API.
